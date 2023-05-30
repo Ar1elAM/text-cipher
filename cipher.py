@@ -49,7 +49,8 @@ def get_cipher_bin(cip):
     Returns:
         list: The binary chunks.
     """
-    decoded_data = base64.b64decode(cip.encode("ascii")).decode("ascii").encode("ascii").hex()
+    decoded_data = base64.b64decode(cip.encode("ascii")).decode(
+        "ascii").encode("ascii").hex()
     bin_cip = bin(int(decoded_data, 16))[2:]
 
     if len(bin_cip) % 8 != 0:
@@ -81,21 +82,21 @@ def bin_file(str_file):
 
 def cipher_data(chunk, key):
     """
-    Applies a bitwise XOR operation between two lists of binary chunks.
+    Applies a bitwise XOR operation between binary chunks and a binary key.
 
     Args:
-        a (list): List of binary chunks.
-        b (str): Binary string.
+        chunk (list): List of binary chunks.
+        key (str): Binary key.
 
     Returns:
         list: The result of the XOR operation on each binary chunk.
     """
-    new_chunk  = []
+    new_chunk = []
     for i in range(len(chunk)):
-        chink = chunk[i]
+        sink = chunk[i]
         keying = key[i % len(key)]
         new_bin = ""
-        for x, char in enumerate(chink):
+        for x, char in enumerate(sink):
             if keying[x] == "1":
                 new_bi = "0" if char == "1" else "1"
             else:
@@ -139,42 +140,52 @@ def write_new_file(file_path, data):
         print(f"Error opening file: {e}")
 
 
+def cipher_run(args, repeat):
+    if repeat:
+        # Prompt the user for a valid option if repeat is True
+        usr = input("Please choose a valid option\n")
+    else:
+        # Prompt the user for an action choice
+        usr = input(
+            "What do you want to do?\n1 - Cipher a file\n2 - Decipher a file\n3 - Exit\n")
+
+    if usr not in ["1", "2", "3"]:  # Check if the chosen option is valid
+        repeat = True  # Set repeat to True to indicate an invalid option
+    elif usr == "3":  # Check if the chosen option is to exit
+        return  # Exit the while loop and end the program
+    else:
+        repeat = False  # Reset repeat to False for a valid option
+        path_to_file = load_file(args)  # Load the file path
+        # Get the contents of the file
+        file_in_str = get_file_contents(path_to_file)
+        cipher = base64.b64encode(str(getpass.getpass("What is the key cipher?\nDo not forget this key!!\n")).encode(
+            "ascii")).decode("ascii")  # Prompt the user for the cipher key and encode it
+        # Get the binary representation of the cipher key
+        bin_key = get_cipher_bin(cipher)
+        # Convert file contents to binary chunks
+        file_chunk = bin_file(file_in_str)
+        # Apply cipher to the file data
+        new_data_bin = cipher_data(file_chunk, bin_key)
+        # Convert the ciphered data back to its original form
+        new_data = debin_data(new_data_bin)
+
+        if usr == "1":  # Check if the chosen option is to cipher the file
+            # Generate the path for the new ciphered file
+            path_to_new_file = path_to_file[:-4] + "-cip" + path_to_file[-4:]
+        else:  # The chosen option is to decipher the file
+            # Generate the path for the new deciphered file
+            path_to_new_file = path_to_file[:-7] + "de" + path_to_file[-7:]
+
+        # Write the ciphered or deciphered data to a new file
+        write_new_file(path_to_new_file, new_data)
+        # Print a message indicating the file operation is completed
+        print(f"File ciphered, new file in\n{path_to_new_file}\n")
+
+    repeat = False  # Reset repeat to False before the next iteration of the while loop
+
+
 repeat = False
 
 while True:
-    if repeat:
-        usr = input("Please choose a valid option\n")  # Prompt user for a valid option if repeat is True
-    else:
-        usr = input(
-            "What do you want to do?\n1 - Cipher a file\n2 - Decipher a file\n3 - Exit\n")  # Prompt user for action choice
-
-    if (usr != "1" and usr != "2" and usr != "3"):  # Check if the chosen option is valid
-        repeat = True  # Set repeat to True to indicate an invalid option
-    elif usr == "3":  # Check if the chosen option is to exit
-        break  # Exit the while loop and end the program
-    else:
-        repeat = False  # Reset repeat to False for a valid option
-        path_to_file = load_file(sys.argv)  # Load the file path
-        file_in_str = get_file_contents(path_to_file)  # Get the contents of the file
-        cipher = base64.b64encode(
-            str(getpass.getpass("What is the key cipher?\nDo not forget this key!!\n")).encode("ascii")).decode(
-            "ascii")  # Prompt user for the cipher key and encode it
-        bin_key = get_cipher_bin(cipher)  # Get the binary representation of the cipher key
-        file_chunk = bin_file(file_in_str)  # Convert file contents to binary chunks
-        new_data_bin = cipher_data(file_chunk, bin_key)  # Apply cipher to the file data
-        new_data = debin_data(new_data_bin)  # Convert the ciphered data back to its original form
-
-        if usr == "1":  # Check if the chosen option is to cipher the file
-            path_to_new_file = path_to_file[:-4] + "-cip" + path_to_file[-4:]  # Generate the path for the new ciphered file
-        else:  # The chosen option is to decipher the file
-            path_to_new_file = path_to_file[:-7] + "de" + path_to_file[-7:]  # Generate the path for the new deciphered file
-
-        write_new_file(path_to_new_file, new_data)  # Write the ciphered or deciphered data to a new file
-        print(f"File ciphered, new file in\n{path_to_new_file}")  # Print a message indicating the file operation is completed
-
-    # Clearing global variables
-    for name in dir():  # Iterate over all variables in the global scope
-        if not name.startswith('_'):  # Exclude variables starting with '_'
-            del globals()[name]  # Delete the variable from the global scope
-
-    repeat = False  # Reset repeat to False before the next iteration of the while loop
+    cipher_run(sys.argv, repeat)
+    sys.argv = [sys.argv[0]]
