@@ -92,10 +92,10 @@ def cipher_data(chunk, key):
     """
     new_chunk  = []
     for i in range(len(chunk)):
-        chink = chunk[i]
+        sink = chunk[i]
         keying = key[i % len(key)]
         new_bin = ""
-        for x, char in enumerate(chink):
+        for x, char in enumerate(sink):
             if keying[x] == "1":
                 new_bi = "0" if char == "1" else "1"
             else:
@@ -171,10 +171,5 @@ while True:
 
         write_new_file(path_to_new_file, new_data)  # Write the ciphered or deciphered data to a new file
         print(f"File ciphered, new file in\n{path_to_new_file}")  # Print a message indicating the file operation is completed
-
-    # Clearing global variables
-    for name in dir():  # Iterate over all variables in the global scope
-        if not name.startswith('_'):  # Exclude variables starting with '_'
-            del globals()[name]  # Delete the variable from the global scope
 
     repeat = False  # Reset repeat to False before the next iteration of the while loop
